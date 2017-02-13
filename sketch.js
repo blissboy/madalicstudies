@@ -56,7 +56,7 @@ function createSquiggle() {
         curPtY = y;
         context.beginPath();
         context.lineWidth = "1";
-        context.strokeStyle = getColorOrGradient;
+        context.strokeStyle = getRainbowXGradient(0,window.innerWidth);
         context.moveTo(curPtX, curPtY);
         steeps.forEach(step => {
             curPtX += step.x;
@@ -76,6 +76,18 @@ function getColorOrGradient() {
     gradient.addColorStop("1.0", "red");
     return gradient;
 }
+
+function getRainbowXGradient(min, max) {
+    let gradient = context.createLinearGradient(min, 0, max, 0);
+    gradient.addColorStop(0, 'red');
+    gradient.addColorStop(1 / 6, 'orange');
+    gradient.addColorStop(2 / 6, 'yellow');
+    gradient.addColorStop(3 / 6, 'green')
+    gradient.addColorStop(4 / 6, 'blue');
+    gradient.addColorStop(5 / 6, 'Indigo');
+    gradient.addColorStop(1, 'Violet'); return gradient;
+}
+
 
 
 function draw() {
@@ -97,14 +109,19 @@ function draw() {
     //createSquiggle();
 }
 
+
+
+
 function drawSquiggleAsMandala(squiggle) {
     translate(window.innerWidth / 2, window.innerHeight / 2);
-    for (radius = 0; radius < window.innerWidth / 2; radius += 100) {
+    let radius = 0;
+    do {
+        //for (radius = 0; radius < window.innerWidth / 2; radius += 100) {
         for (i = 0; i < 60; i++) {
             rotate((Math.PI * 2) / i);
-            squiggle(radius, 0);
+            squiggle(radius++, 0);
         }
-    }
+    } while (radius < window.innerWidth);
 }
 
 
