@@ -56,7 +56,7 @@ function createSquiggle() {
         curPtY = y;
         context.beginPath();
         context.lineWidth = "1";
-        context.strokeStyle = getRainbowXGradient(0,window.innerWidth);
+        context.strokeStyle = getMovingRainbowXGradient(0,window.innerWidth);
         context.moveTo(curPtX, curPtY);
         steeps.forEach(step => {
             curPtX += step.x;
@@ -88,6 +88,16 @@ function getRainbowXGradient(min, max) {
     gradient.addColorStop(1, 'Violet'); return gradient;
 }
 
+let movingGradientStep = 0;
+let movingGradientSteps = ['red', 'orange', 'yellow', 'green', 'blue', 'Indigo', 'Violet'];
+function getMovingRainbowXGradient(min,max) {
+    let gradient = context.createLinearGradient(min, 0, max, 0);
+    gradient.addColorStop(0, movingGradientSteps[movingGradientStep % movingGradientSteps.length]);
+    gradient.addColorStop(0.5, movingGradientSteps[(movingGradientStep + 1) % movingGradientSteps.length]);
+    gradient.addColorStop(1, movingGradientSteps[(movingGradientStep + 2) % movingGradientSteps.length]);
+    movingGradientStep++;
+    return gradient;
+}
 
 
 function draw() {
