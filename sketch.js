@@ -2,6 +2,9 @@ const max_angle_delta = 270 * Math.PI / 180; // radians (75 degrees)
 const stepSize = 6;
 let squiggles = [];
 let context;
+let gif;
+let recording = false;
+let started = false;
 let drawCount = 0;
 const numSquiggles = 7;
 
@@ -10,14 +13,48 @@ function setup() {
     context = canvas.canvas.getContext('2d');
     window.onresize = () =>
         resizeCanvas(window.innerWidth, window.innerHeight);
+
+    setupGIFCapture();
+
+    createSquiggle();
     let squigCount = 0;
     do {
         squiggles.push(createSquiggle());
     } while (squigCount++ < numSquiggles)
 }
 
-function getStepsFromEdgeToEdge() {
-    let steeps = [];
+function setupGIFCapture() {
+    gif = new GIF({
+        workers: 2,
+        quality: 90,
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+
+    gif.on('finished', function (blob) {
+        window.open(URL.createObjectURL(blob));
+        setupGif();
+    });
+}
+
+function keyPressed() {
+    console.log(key);
+    console.log(keyCode);
+    if (key == ' ') {
+        if (recording) {
+            recording = false;
+            if ( started ) {
+                gif.render();
+            }
+        } else {
+            started = true;
+            recording = true;
+        }
+    }
+}
+
+function getStepsAcrossScreen() {
+    steeps = [];
     let startingPoint = getStartingPointAndDirection();
     let currentPoint = startingPoint.startPoint;
     let currentAngle = startingPoint.startDirection;
@@ -38,30 +75,19 @@ function getStepsFromEdgeToEdge() {
         && currentPoint.y >= 0)
 
     return steeps;
-} 
+}
 
 function createSquiggle() {
-    
-    let steeps = getStepsFromEdgeToEdge();
-    
+    let steeps = getStepsAcrossScreen();
+
     return (x, y) => {
 
-        //context.strokeStyle = "red";
         context.moveTo(0, 0);
-
-        //line(0,0,window.innerWidth,window.innerHeight);
-        // context.beginPath();
-        // context.lineWidth="5";
-        // context.strokeStyle="green"; // Green path
-        // context.moveTo(0,75);
-        // context.lineTo(800,75);
-        // context.stroke(); // Draw it
-
         curPtX = x;
         curPtY = y;
         context.beginPath();
         context.lineWidth = "1";
-        context.strokeStyle = getRandomRainbowXGradient(0,window.innerWidth);
+        context.strokeStyle = getPerCallMovingRainbowXGradient(0, window.innerWidth);
         context.moveTo(curPtX, curPtY);
         steeps.forEach(step => {
             curPtX += step.x;
@@ -88,12 +114,12 @@ function draw() {
         //         //rotate(degree);
         //     }
         // }
-    //}
+
+    if ( recording ) {
+        gif.addFrame(context, {copy: true});
+    }
     //createSquiggle();
 }
-
-
-
 
 function drawSquiggleAsMandala(squiggle) {
     translate(window.innerWidth / 2, window.innerHeight / 2);
@@ -107,7 +133,6 @@ function drawSquiggleAsMandala(squiggle) {
         radius += 10;
     } while (radius < window.innerWidth);
 }
-
 
 function steerAngle(angle) {
     return (angle + Math.random() * max_angle_delta - (max_angle_delta / 2));
