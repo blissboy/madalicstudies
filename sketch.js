@@ -1,21 +1,23 @@
 const max_angle_delta = 270 * Math.PI / 180; // radians (75 degrees)
-const stepSize = 50;
-var steeps = [];
+const stepSize = 6;
 let squiggles = [];
-let theSquiggle;
 let context;
+let drawCount = 0;
+const numSquiggles = 7;
 
 function setup() {
     let canvas = createCanvas(window.innerWidth, window.innerHeight);
     context = canvas.canvas.getContext('2d');
     window.onresize = () =>
         resizeCanvas(window.innerWidth, window.innerHeight);
-
-    createSquiggle();
+    let squigCount = 0;
+    do {
+        squiggles.push(createSquiggle());
+    } while (squigCount++ < numSquiggles)
 }
 
-function createSquiggle() {
-    steeps = [];
+function getStepsFromEdgeToEdge() {
+    let steeps = [];
     let startingPoint = getStartingPointAndDirection();
     let currentPoint = startingPoint.startPoint;
     let currentAngle = startingPoint.startDirection;
@@ -35,11 +37,14 @@ function createSquiggle() {
         && currentPoint.y <= window.innerHeight
         && currentPoint.y >= 0)
 
+    return steeps;
+} 
 
-    let gradient = getColorOrGradient();
-
-
-    theSquiggle = (x, y) => {
+function createSquiggle() {
+    
+    let steeps = getStepsFromEdgeToEdge();
+    
+    return (x, y) => {
 
         //context.strokeStyle = "red";
         context.moveTo(0, 0);
@@ -56,7 +61,7 @@ function createSquiggle() {
         curPtY = y;
         context.beginPath();
         context.lineWidth = "1";
-        context.strokeStyle = getMovingRainbowXGradient(0,window.innerWidth);
+        context.strokeStyle = getRandomRainbowXGradient(0,window.innerWidth);
         context.moveTo(curPtX, curPtY);
         steeps.forEach(step => {
             curPtX += step.x;
@@ -66,56 +71,24 @@ function createSquiggle() {
         context.stroke();
         context.closePath();
     }
-
 }
-
-function getColorOrGradient() {
-    let gradient = context.createLinearGradient(0, 0, 170, 0);
-    gradient.addColorStop("0", "black");
-    gradient.addColorStop("0.5", "blue");
-    gradient.addColorStop("1.0", "red");
-    return gradient;
-}
-
-function getRainbowXGradient(min, max) {
-    let gradient = context.createLinearGradient(min, 0, max, 0);
-    gradient.addColorStop(0, 'red');
-    gradient.addColorStop(1 / 6, 'orange');
-    gradient.addColorStop(2 / 6, 'yellow');
-    gradient.addColorStop(3 / 6, 'green')
-    gradient.addColorStop(4 / 6, 'blue');
-    gradient.addColorStop(5 / 6, 'Indigo');
-    gradient.addColorStop(1, 'Violet'); return gradient;
-}
-
-let movingGradientStep = 0;
-let movingGradientSteps = ['red', 'orange', 'yellow', 'green', 'blue', 'Indigo', 'Violet'];
-function getMovingRainbowXGradient(min,max) {
-    let gradient = context.createLinearGradient(min, 0, max, 0);
-    gradient.addColorStop(0, movingGradientSteps[movingGradientStep % movingGradientSteps.length]);
-    gradient.addColorStop(0.5, movingGradientSteps[(movingGradientStep + 1) % movingGradientSteps.length]);
-    gradient.addColorStop(1, movingGradientSteps[(movingGradientStep + 2) % movingGradientSteps.length]);
-    movingGradientStep++;
-    return gradient;
-}
-
 
 function draw() {
-    // create a path drawing mechanism that goes from one edge to another
+    drawCount++;
+
     //const degree = Math.PI / 180;
-    background(255);
+    background(0);
     //line(0,0,window.innerWidth, window.innerHeight);
-    if (theSquiggle) {
-
-        drawSquiggleAsMandala(theSquiggle);
-
+    squiggles.forEach( squiggle => {
+        drawSquiggleAsMandala(squiggle);
+    });
         // for (x = 0; x < window.innerWidth; x += (stepSize * 0.4)) {
         //     for (y = 0; y < window.innerHeight; y += (stepSize * 1.3)) {
         //         theSquiggle(x, y);
         //         //rotate(degree);
         //     }
         // }
-    }
+    //}
     //createSquiggle();
 }
 
@@ -127,10 +100,11 @@ function drawSquiggleAsMandala(squiggle) {
     let radius = 0;
     do {
         //for (radius = 0; radius < window.innerWidth / 2; radius += 100) {
-        for (i = 0; i < 60; i++) {
+        for (i = 0; i < 12; i++) {
             rotate((Math.PI * 2) / i);
-            squiggle(radius++, 0);
+            squiggle(radius, 0);
         }
+        radius += 10;
     } while (radius < window.innerWidth);
 }
 
