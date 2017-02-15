@@ -1,9 +1,12 @@
 const max_angle_delta = 270 * Math.PI / 180; // radians (75 degrees)
 const stepSize = 50;
-var steeps = [];
+//var steeps = [];
 let squiggles = [];
 let theSquiggle;
 let context;
+let gif;
+let recording = false;
+let started = false;
 
 function setup() {
     let canvas = createCanvas(window.innerWidth, window.innerHeight);
@@ -11,10 +14,40 @@ function setup() {
     window.onresize = () =>
         resizeCanvas(window.innerWidth, window.innerHeight);
 
+    setupGIFCapture();
+
     createSquiggle();
 }
 
-function createSquiggle() {
+function setupGIFCapture() {
+    gif = new GIF({
+        workers: 2,
+        quality: 90
+    });
+
+    gif.on('finished', function (blob) {
+        window.open(URL.createObjectURL(blob));
+        setupGif();
+    });
+}
+
+function keyPressed() {
+    console.log(key);
+    console.log(keyCode);
+    if (key == ' ') {
+        if (recording) {
+            recording = false;
+            if ( started ) {
+                gif.render();
+            }
+        } else {
+            started = true;
+            recording = true;
+        }
+    }
+}
+
+function getStepsAcrossScreen() {
     steeps = [];
     let startingPoint = getStartingPointAndDirection();
     let currentPoint = startingPoint.startPoint;
@@ -35,6 +68,12 @@ function createSquiggle() {
         && currentPoint.y <= window.innerHeight
         && currentPoint.y >= 0)
 
+    return steeps;
+}
+
+function createSquiggle() {
+
+    let steeps = getStepsAcrossScreen();
 
     let gradient = getColorOrGradient();
 
@@ -56,7 +95,7 @@ function createSquiggle() {
         curPtY = y;
         context.beginPath();
         context.lineWidth = "1";
-        context.strokeStyle = getMovingRainbowXGradient(0,window.innerWidth);
+        context.strokeStyle = getMovingRainbowXGradient(0, window.innerWidth);
         context.moveTo(curPtX, curPtY);
         steeps.forEach(step => {
             curPtX += step.x;
@@ -68,38 +107,6 @@ function createSquiggle() {
     }
 
 }
-
-function getColorOrGradient() {
-    let gradient = context.createLinearGradient(0, 0, 170, 0);
-    gradient.addColorStop("0", "black");
-    gradient.addColorStop("0.5", "blue");
-    gradient.addColorStop("1.0", "red");
-    return gradient;
-}
-
-function getRainbowXGradient(min, max) {
-    let gradient = context.createLinearGradient(min, 0, max, 0);
-    gradient.addColorStop(0, 'red');
-    gradient.addColorStop(1 / 6, 'orange');
-    gradient.addColorStop(2 / 6, 'yellow');
-    gradient.addColorStop(3 / 6, 'green')
-    gradient.addColorStop(4 / 6, 'blue');
-    gradient.addColorStop(5 / 6, 'Indigo');
-    gradient.addColorStop(1, 'Violet'); return gradient;
-}
-
-let movingGradientStep = 0;
-let movingGradientSteps = ['red', 'orange', 'yellow', 'green', 'blue', 'Indigo', 'Violet'];
-function getMovingRainbowXGradient(min,max) {
-    let gradient = context.createLinearGradient(min, 0, max, 0);
-    gradient.addColorStop(0, movingGradientSteps[movingGradientStep % movingGradientSteps.length]);
-    gradient.addColorStop(0.5, movingGradientSteps[(movingGradientStep + 1) % movingGradientSteps.length]);
-    gradient.addColorStop(1, movingGradientSteps[(movingGradientStep + 2) % movingGradientSteps.length]);
-    movingGradientStep++;
-    return gradient;
-}
-
-
 function draw() {
     // create a path drawing mechanism that goes from one edge to another
     //const degree = Math.PI / 180;
@@ -115,6 +122,10 @@ function draw() {
         //         //rotate(degree);
         //     }
         // }
+    }
+
+    if ( recording ) {
+        gif.addFrame(canvas.elt, {delay: 1, copy: true});
     }
     //createSquiggle();
 }
