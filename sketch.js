@@ -4,7 +4,9 @@ const stepSize = 50;
 let squiggles = [];
 let theSquiggle;
 let context;
-let gif;
+var gif = new Animated_GIF({
+    repeat: null, // Don't repeat
+});
 let recording = false;
 let started = false;
 
@@ -14,22 +16,49 @@ function setup() {
     window.onresize = () =>
         resizeCanvas(window.innerWidth, window.innerHeight);
 
-    setupGIFCapture();
+    //setupGIFCapture();
 
     createSquiggle();
+
+    saveFrames("woo", "png", 3, 24, (frames) => {
+        //console.log(frame);
+        //console.log(frame[0].imageData)
+
+        // var file = new Blob([frame.imageData], {
+        //     type: 'application/octet-stream'
+        // });
+        //window.saveAs(file, frame.fileName);
+
+        frames.forEach( frame => {
+            gif.addFrameImageData(frame.imageData);
+        })
+        
+// seems like we are adding frames ok, now just need to render? 
+herehere
+
+
+        gif.generateGIF( (obj) => {
+            console.log(obj);
+        });
+
+
+        // frame.forEach( f => {
+        //     boo = window.open(uriContent = encodeURIComponent(f.imageData));
+        // })
+    });
 }
 
-function setupGIFCapture() {
-    gif = new GIF({
-        workers: 2,
-        quality: 90
-    });
+// function setupGIFCapture() {
+//     gif = new GIF({
+//         workers: 2,
+//         quality: 90
+//     });
 
-    gif.on('finished', function (blob) {
-        window.open(URL.createObjectURL(blob));
-        setupGif();
-    });
-}
+//     gif.on('finished', function (blob) {
+//         window.open(URL.createObjectURL(blob));
+//         setupGif();
+//     });
+// }
 
 function keyPressed() {
     console.log(key);
@@ -37,7 +66,7 @@ function keyPressed() {
     if (key == ' ') {
         if (recording) {
             recording = false;
-            if ( started ) {
+            if (started) {
                 gif.render();
             }
         } else {
@@ -124,8 +153,8 @@ function draw() {
         // }
     }
 
-    if ( recording ) {
-        gif.addFrame(canvas.elt, {delay: 1, copy: true});
+    if (recording) {
+        //gif.addFrame(canvas.elt, { delay: 1, copy: true });
     }
     //createSquiggle();
 }
