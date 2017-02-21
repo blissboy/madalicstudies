@@ -3,18 +3,27 @@ const stepSize = 50;
 let squiggles = [];
 let theSquiggle;
 let context;
-var gif = new Animated_GIF({
-    repeat: null, // Don't repeat
-});
 let recording = false;
 let started = false;
 let drawCount = 0;
 
+var hite = window.innerHeight;
+var widdth = window.innerWidth;
+var gif = new Animated_GIF({
+    repeat: null, // Don't repeat
+    width: widdth,
+    height: hite,
+    useQuantizer: true,
+    sampleInterval: 1,
+});
+gif.setDelay(.088);
 function setup() {
-    let canvas = createCanvas(window.innerWidth, window.innerHeight);
+    let canvas = createCanvas(widdth, hite);
     context = canvas.canvas.getContext('2d');
     window.onresize = () =>
-        resizeCanvas(window.innerWidth, window.innerHeight);
+        widdth = window.innerWidth;
+    hite = window.innerHeight;
+    resizeCanvas(widdth, hite);
 
     //setupGIFCapture();
 
@@ -32,11 +41,20 @@ function setup() {
         'data:image/octet-stream;base64,';
 
         frames.forEach(frame => {
-            gif.addFrameImageData({
-                data: atob(frame.imageData.substring(31)),
-                height: window.innerHeight,
-                width: window.innerWidth
-            });
+            //console.log('*********************------------------------------');
+            //console.log(frame.imageData);
+            let img = new Image();
+            img.src = 'data:image/png;base64,' + frame.imageData.substring(31);
+            //img.height = hite;
+            //img.width = widdth;
+
+            gif.addFrame(img);
+
+            // gif.addFrameImageData({
+            //     data: atob(frame.imageData.substring(31)),
+            //     height: hite,
+            //     width: widdth
+            // });
         });
 
         // seems like we are adding frames ok, now just need to render?
@@ -49,7 +67,7 @@ function setup() {
 
 
         gif.getBlobGIF((blob) => {
-            console.log(blob);
+            //console.log(blob);
             download(blob, 'woo.gif', 'image/gif');
         });
 
@@ -79,19 +97,6 @@ function download(data, filename, type) {
         }, 0);
     }
 }
-
-
-// function setupGIFCapture() {
-//     gif = new GIF({
-//         workers: 2,
-//         quality: 90
-//     });
-
-//     gif.on('finished', function (blob) {
-//         window.open(URL.createObjectURL(blob));
-//         setupGif();
-//     });
-// }
 
 function keyPressed() {
     console.log(key);
@@ -125,9 +130,9 @@ function getStepsAcrossScreen() {
         });
         currentAngle = steerAngle(currentAngle);
     } while (
-        currentPoint.x <= window.innerWidth
+        currentPoint.x <= widdth
         && currentPoint.x >= 0
-        && currentPoint.y <= window.innerHeight
+        && currentPoint.y <= hite
         && currentPoint.y >= 0)
 
     return steeps;
@@ -143,7 +148,8 @@ function createSquiggle() {
         curPtY = y;
         context.beginPath();
         context.lineWidth = "1";
-        context.strokeStyle = getMovingRainbowXGradient(0, window.innerWidth);
+        context.strokeStyle = "green";
+        //context.strokeStyle = getMovingRainbowXGradient(0, widdth);
         context.moveTo(curPtX, curPtY);
         steeps.forEach(step => {
             curPtX += step.x;
@@ -158,15 +164,15 @@ function createSquiggle() {
 function draw() {
     drawCount++;
 
-    //const degree = Math.PI / 180;
+    const degree = Math.PI / 180;
     background(255);
-    //line(0,0,window.innerWidth, window.innerHeight);
+    //line(0,0,widdth, hite);
     if (theSquiggle) {
 
         drawSquiggleAsMandala(theSquiggle);
-
-        // for (x = 0; x < window.innerWidth; x += (stepSize * 0.4)) {
-        //     for (y = 0; y < window.innerHeight; y += (stepSize * 1.3)) {
+        rotate(drawCount);
+        // for (x = 0; x < widdth; x += (stepSize * 0.4)) {
+        //     for (y = 0; y < hite; y += (stepSize * 1.3)) {
         //         theSquiggle(x, y);
         //         //rotate(degree);
         //     }
@@ -180,15 +186,15 @@ function draw() {
 }
 
 function drawSquiggleAsMandala(squiggle) {
-    translate(window.innerWidth / 2, window.innerHeight / 2);
+    translate(widdth / 2, hite / 2);
     let radius = 0;
     do {
-        //for (radius = 0; radius < window.innerWidth / 2; radius += 100) {
+        //for (radius = 0; radius < widdth / 2; radius += 100) {
         for (i = 0; i < 60; i++) {
             rotate((Math.PI * 2) / i);
             squiggle(radius++, 0);
         }
-    } while (radius < window.innerWidth);
+    } while (radius < widdth);
 }
 
 function steerAngle(angle) {
@@ -201,7 +207,7 @@ function getStartingPointAndDirection() {
             return {
                 startPoint: {
                     x: 0,
-                    y: Math.random() * window.innerHeight
+                    y: Math.random() * hite
                 },
                 startDirection: 0
             };
@@ -209,7 +215,7 @@ function getStartingPointAndDirection() {
             //console.log("te1 ");
             return {
                 startPoint: {
-                    x: Math.random() * window.innerWidth,
+                    x: Math.random() * widdth,
                     y: 0
                 },
                 startDirection: 0.5 * Math.PI
@@ -218,8 +224,8 @@ function getStartingPointAndDirection() {
             //console.log("re2 ");
             return {
                 startPoint: {
-                    x: window.innerWidth,
-                    y: Math.random() * window.innerHeight
+                    x: widdth,
+                    y: Math.random() * hite
                 },
                 startDirection: Math.PI
             }
@@ -227,8 +233,8 @@ function getStartingPointAndDirection() {
             //console.log("be3 ");
             return {
                 startPoint: {
-                    x: Math.random() * window.innerWidth,
-                    y: window.innerHeight
+                    x: Math.random() * widdth,
+                    y: hite
                 },
                 startDirection: 1.5 * Math.PI
             };
@@ -237,7 +243,7 @@ function getStartingPointAndDirection() {
             return {
                 startPoint: {
                     x: 0,
-                    y: Math.random() * window.innerHeight
+                    y: Math.random() * hite
                 },
                 startDirection: 0
             };
