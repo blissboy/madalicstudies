@@ -6,6 +6,7 @@ let context;
 let recording = false;
 let started = false;
 let drawCount = 0;
+let maxSquiggles = 7;
 
 var hite = window.innerHeight;
 var widdth = window.innerWidth;
@@ -17,6 +18,7 @@ var gif = new Animated_GIF({
     sampleInterval: 1,
 });
 gif.setDelay(.088);
+
 function setup() {
     let canvas = createCanvas(widdth, hite);
     context = canvas.canvas.getContext('2d');
@@ -27,55 +29,19 @@ function setup() {
 
     //setupGIFCapture();
 
-    theSquiggle = createSquiggle();
+    squiggles.push(createSquiggle());
 
     saveFrames("woo", "png", 3, 3, (frames) => {
-        //console.log(frame);
-        //console.log(frame[0].imageData)
-
-        // var file = new Blob([frame.imageData], {
-        //     type: 'application/octet-stream'
-        // });
-        //window.saveAs(file, frame.fileName);
-
-        'data:image/octet-stream;base64,';
-
         frames.forEach(frame => {
-            //console.log('*********************------------------------------');
-            //console.log(frame.imageData);
             let img = new Image();
-            img.src = 'data:image/png;base64,' + frame.imageData.substring(31);
-            //img.height = hite;
-            //img.width = widdth;
-
+            img.src = 'data:image/png;base64,' + frame.imageData.substring(31); // 31 removes 'data:image/octet-stream;base64,'
             gif.addFrame(img);
-
-            // gif.addFrameImageData({
-            //     data: atob(frame.imageData.substring(31)),
-            //     height: hite,
-            //     width: widdth
-            // });
         });
-
-        // seems like we are adding frames ok, now just need to render?
-        //herehere
-
-        // gif.getBase64GIF((gif) => {
-        //     console.log(gif);
-        //     download(gif, "woo2.gif", "image/gif");
-        // });
-
 
         gif.getBlobGIF((blob) => {
             //console.log(blob);
             download(blob, 'woo.gif', 'image/gif');
         });
-
-        // gif.generateGIF( (obj) => {
-        //     console.log(obj);
-        // });
-
-
     });
 }
 
@@ -148,8 +114,8 @@ function createSquiggle() {
         curPtY = y;
         context.beginPath();
         context.lineWidth = "1";
-        context.strokeStyle = "green";
-        //context.strokeStyle = getMovingRainbowXGradient(0, widdth);
+        //context.strokeStyle = "green";
+        context.strokeStyle = getMovingRainbowXGradient(0, widdth);
         context.moveTo(curPtX, curPtY);
         steeps.forEach(step => {
             curPtX += step.x;
@@ -167,22 +133,16 @@ function draw() {
     const degree = Math.PI / 180;
     background(255);
     //line(0,0,widdth, hite);
-    if (theSquiggle) {
+    squiggles.forEach(squiggle => {
+        drawSquiggleAsMandala(squiggle);
+    });
 
-        drawSquiggleAsMandala(theSquiggle);
-        rotate(drawCount);
-        // for (x = 0; x < widdth; x += (stepSize * 0.4)) {
-        //     for (y = 0; y < hite; y += (stepSize * 1.3)) {
-        //         theSquiggle(x, y);
-        //         //rotate(degree);
-        //     }
-        // }
+    squiggles.push(createSquiggle());
+
+    if (squiggles.length > maxSquiggles) {
+        squiggles.splice(0, 1);
     }
 
-    if (recording) {
-        //gif.addFrame(canvas.elt, { delay: 1, copy: true });
-    }
-    //createSquiggle();
 }
 
 function drawSquiggleAsMandala(squiggle) {
@@ -190,7 +150,7 @@ function drawSquiggleAsMandala(squiggle) {
     let radius = 0;
     do {
         //for (radius = 0; radius < widdth / 2; radius += 100) {
-        for (i = 0; i < 60; i++) {
+        for (i = 0; i < 7; i++) {
             rotate((Math.PI * 2) / i);
             squiggle(radius++, 0);
         }
