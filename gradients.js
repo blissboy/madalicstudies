@@ -20,13 +20,22 @@ function getRainbowXGradient(min, max) {
     gradient.addColorStop(1, 'Violet'); return gradient;
 }
 
-function getMovingRainbowXGradient(min,max) {
+function getPerDrawRainbowXGradient(min,max,drawCount) {
+    return getMovingRainbowXGradient(min,max,drawCount);
+}
+
+function getMovingXGradient(min,max,count) {
     let gradient = context.createLinearGradient(min, 0, max, 0);
-    gradient.addColorStop(0, movingGradientSteps[movingGradientStep % movingGradientSteps.length]);
-    gradient.addColorStop(0.5, movingGradientSteps[(movingGradientStep + 1) % movingGradientSteps.length]);
-    gradient.addColorStop(1, movingGradientSteps[(movingGradientStep + 2) % movingGradientSteps.length]);
-    movingGradientStep++;
+    gradient.addColorStop(0, movingGradientSteps[count % movingGradientSteps.length]);
+    gradient.addColorStop(0.5, movingGradientSteps[(count + 1) % movingGradientSteps.length]);
+    gradient.addColorStop(1, movingGradientSteps[(count + 2) % movingGradientSteps.length]);
     return gradient;
+}
+
+
+function getMovingRainbowXGradient(min,max) {
+    movingGradientStep++;
+    return getMovingXGradient(min,max,movingGradientStep);
 }
 
 

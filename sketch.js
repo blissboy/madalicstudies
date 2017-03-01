@@ -1,25 +1,29 @@
 const max_angle_delta = 270 * Math.PI / 180; // radians (75 degrees)
-const stepSize = 50;
+const stepSize = 6;
+const squiggCount = 9;
 let squiggles = [];
-let theSquiggle;
 let context;
 let recording = false;
 let started = false;
 let drawCount = 0;
-let maxSquiggles = 7;
+const maxSquiggles = 30;
+const maxSteps = 40;
 
 var hite = window.innerHeight;
 var widdth = window.innerWidth;
-var gif = new Animated_GIF({
-    repeat: null, // Don't repeat
-    width: widdth,
-    height: hite,
-    useQuantizer: true,
-    sampleInterval: 1,
-});
-gif.setDelay(.088);
+var gif;
 
 function setup() {
+    frameRate(30);
+    gif = new Animated_GIF({
+        repeat: null, // Don't repeat
+        width: widdth,
+        height: hite,
+        useQuantizer: true,
+        sampleInterval: 1,
+    });
+    gif.setDelay(.088);
+    
     let canvas = createCanvas(widdth, hite);
     context = canvas.canvas.getContext('2d');
     window.onresize = () =>
@@ -27,23 +31,47 @@ function setup() {
     hite = window.innerHeight;
     resizeCanvas(widdth, hite);
 
-    //setupGIFCapture();
-
     squiggles.push(createSquiggle());
 
-    saveFrames("woo", "png", 3, 3, (frames) => {
+    setupSaveFrames();
+
+}
+
+function setupSaveFrames() {
+        
+    saveFrames("woo", "png", 7, 10, (frames) => {
+        // deal with all the frames    
         frames.forEach(frame => {
             let img = new Image();
-            img.src = 'data:image/png;base64,' + frame.imageData.substring(31); // 31 removes 'data:image/octet-stream;base64,'
+            img.src = 'data:image/png;base64,' + frame.imageData.substring(31); // 31 = length of 'data:image/octet-stream;base64,';
             gif.addFrame(img);
         });
 
+        // generate and dl the ani gif
         gif.getBlobGIF((blob) => {
             //console.log(blob);
             download(blob, 'woo.gif', 'image/gif');
         });
     });
 }
+
+function draw() {
+    drawCount++;
+
+    const degree = Math.PI / 180;
+    background(255);
+    //line(0,0,widdth, hite);
+    squiggles.forEach(squiggle => {
+        drawSquiggleAsMandala(squiggle);
+    });
+
+    squiggles.push(createSquiggle());
+
+    if (squiggles.length > maxSquiggles) {
+        squiggles.splice(0, 1);
+    }
+}
+
 
 // Function to download data to a file
 function download(data, filename, type) {
@@ -99,7 +127,9 @@ function getStepsAcrossScreen() {
         currentPoint.x <= widdth
         && currentPoint.x >= 0
         && currentPoint.y <= hite
-        && currentPoint.y >= 0)
+        && currentPoint.y >= 0
+        && steeps.length < maxSteps)
+
 
     return steeps;
 }
@@ -115,7 +145,8 @@ function createSquiggle() {
         context.beginPath();
         context.lineWidth = "1";
         //context.strokeStyle = "green";
-        context.strokeStyle = getMovingRainbowXGradient(0, widdth);
+        //context.strokeStyle = getMovingRainbowXGradient(0, widdth);
+        context.strokeStyle = getPerDrawRainbowXGradient(0, widdth, drawCount);
         context.moveTo(curPtX, curPtY);
         steeps.forEach(step => {
             curPtX += step.x;
@@ -127,24 +158,6 @@ function createSquiggle() {
     }
 }
 
-function draw() {
-    drawCount++;
-
-    const degree = Math.PI / 180;
-    background(255);
-    //line(0,0,widdth, hite);
-    squiggles.forEach(squiggle => {
-        drawSquiggleAsMandala(squiggle);
-    });
-
-    squiggles.push(createSquiggle());
-
-    if (squiggles.length > maxSquiggles) {
-        squiggles.splice(0, 1);
-    }
-
-}
-
 function drawSquiggleAsMandala(squiggle) {
     translate(widdth / 2, hite / 2);
     let radius = 0;
@@ -152,8 +165,9 @@ function drawSquiggleAsMandala(squiggle) {
         //for (radius = 0; radius < widdth / 2; radius += 100) {
         for (i = 0; i < 7; i++) {
             rotate((Math.PI * 2) / i);
-            squiggle(radius++, 0);
+            squiggle(radius, 0);
         }
+        radius += 10;
     } while (radius < widdth);
 }
 
